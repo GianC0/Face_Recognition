@@ -11,6 +11,7 @@ from net import Net
 
 train_dir = './train_images'
 test_dir = './test_images'
+real_dir = './real_images'
 
 transform = transforms.Compose(
     [transforms.Grayscale(), 
@@ -40,7 +41,7 @@ valid_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, sa
 test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True, num_workers=1)
 classes = ('noface','face')
 
-n_epochs = 3
+n_epochs = 1
 
 for epoch in range(1, n_epochs+1):
     for data in train_loader:
@@ -63,5 +64,6 @@ with torch.no_grad():
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
 
-print('Accuracy of the network on the 10000 test images: %d %%' % (
+
+print('Accuracy of the network on the 10000 on dummy faces  images: %d %%' % (
     100 * correct / total))
