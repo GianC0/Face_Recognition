@@ -6,6 +6,7 @@ import torchvision.transforms as transforms
 import torch.nn as nn
 from torch.utils.data.sampler import SubsetRandomSampler
 import torch.optim as optim
+from pyramid import pyramid, sliding_window
 from net import Net
 
 
@@ -41,29 +42,43 @@ valid_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, sa
 test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True, num_workers=1)
 classes = ('noface','face')
 
-n_epochs = 1
+if __name__ == "__main__":    
+    n_epochs = 1
+    for epoch in range(1, n_epochs+1):
+        for data in train_loader:
+            optimizer.zero_grad()
+            images, labels = data
+            outputs = net(images) # This has an extra dimension, why? ([32, 2])
+            #_, predicted = torch.max(outputs.data, 1)
+            #predicted = predicted.type(torch.float)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
 
-for epoch in range(1, n_epochs+1):
-    for data in train_loader:
-        optimizer.zero_grad()
-        images, labels = data
-        outputs = net(images) # This has an extra dimension, why? ([32, 2])
-        #_, predicted = torch.max(outputs.data, 1)
-        #predicted = predicted.type(torch.float)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for data in test_loader:
+            images, labels = data
+            outputs = net(images)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
 
-correct = 0
-total = 0
-with torch.no_grad():
-    for data in test_loader:
-        images, labels = data
-        outputs = net(images)
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
+    print('Accuracy of the network on the 10000 on dummy faces  images: %d %%' % (
+        100 * correct / total))
 
+    # TODO: fix
+    with torch.no_grad():
+        for data in real_dir:
+            for resized in pyramid(image, scale=1.2):
+                # loop over the sliding window for each layer of the pyramid
+                for (x, y, window) in sliding_window(resized, stepSize=16, windowSize=(winW, winH)):
+                    # TODO: transform the little rectangle to tensor
+                    test_data = torchvision.datasets.ImageFolder(test_dir, transform=transform)
+                    if the window does not meet our desired window size, ignore it
+                    if window.shape[0] != winH or window.shape[1] != winW:
+                        continue
 
-print('Accuracy of the network on the 10000 on dummy faces  images: %d %%' % (
-    100 * correct / total))
+                    clone = resized.copy()
+                    cv2.rectangle(clone, (x, y), (x + winW, y + winH), (0, 255, 0), 2)

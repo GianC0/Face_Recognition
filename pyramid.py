@@ -1,4 +1,9 @@
 #!/bin/env python3
+# TODO: Rewrite
+# TODO: Make it work with tensors
+# TODO: Implement a way to go from tensors to images, maintaining the original positions no matter the scale, position and angle 
+# TODO: Implement a class to keep track of all the information neede (tensor, position of the corner, number of iteration in terms of scale, )
+# Each time we go searching through the picture, we skip the parts that are already a face
 # import the necessary packages
 import imutils
 
@@ -25,23 +30,22 @@ def sliding_window(image, stepSize, windowSize):
 			# yield the current window
 			yield (x, y, image[y:y + windowSize[1], x:x + windowSize[0]])
 
-# Load the image
-# import time
-# import cv2
-# image = cv2.imread("./slowdive.jpg")
-# winW, winH = (36, 36)
+if __name__ == "__main__":
+	# Load the image
+	import time
+	import cv2
+	image = cv2.imread("./slowdive.jpg")
+	winW, winH = (36, 36)
 
+	for resized in pyramid(image, scale=1.2):
+		# loop over the sliding window for each layer of the pyramid
+		for (x, y, window) in sliding_window(resized, stepSize=16, windowSize=(winW, winH)):
+			# if the window does not meet our desired window size, ignore it
+			if window.shape[0] != winH or window.shape[1] != winW:
+				continue
 
-# loop over the image pyramid
-# for resized in pyramid(image, scale=1.2):
-	# loop over the sliding window for each layer of the pyramid
-# 	for (x, y, window) in sliding_window(resized, stepSize=16, windowSize=(winW, winH)):
-		# if the window does not meet our desired window size, ignore it
-# 		if window.shape[0] != winH or window.shape[1] != winW:
-# 			continue
-
-# 		clone = resized.copy()
-# 		cv2.rectangle(clone, (x, y), (x + winW, y + winH), (0, 255, 0), 2)
-# 		cv2.imshow("Window", clone)
-# 		cv2.waitKey(1)
-# 		time.sleep(0.001)
+			clone = resized.copy()
+			cv2.rectangle(clone, (x, y), (x + winW, y + winH), (0, 255, 0), 2)
+			cv2.imshow("Window", clone)
+			cv2.waitKey(1)
+			time.sleep(0.001)
