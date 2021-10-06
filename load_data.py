@@ -6,7 +6,7 @@ import torchvision.transforms as transforms
 import torch.nn as nn
 from torch.utils.data.sampler import SubsetRandomSampler
 import torch.optim as optim
-from pyramid import pyramid, sliding_window
+from pyramid_default import pyramid_sliding_window_detection
 from net import Net
 
 
@@ -22,8 +22,10 @@ transform = transforms.Compose(
 train_data = torchvision.datasets.ImageFolder(train_dir, transform=transform)
 test_data = torchvision.datasets.ImageFolder(test_dir, transform=transform)
 
-valid_size = 0.3
+valid_size = 0.05
 batch_size = 32
+n_epochs = 1
+
 net = Net()
 optimizer = optim.SGD(net.parameters(), lr=0.01)
 criterion = nn.CrossEntropyLoss()
@@ -42,21 +44,33 @@ valid_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, sa
 test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True, num_workers=1)
 classes = ('noface','face')
 
-if __name__ == "__main__":    
-    n_epochs = 1
+if __name__ == "__main__":
+    net.train()
     for epoch in range(1, n_epochs+1):
         for data in train_loader:
             optimizer.zero_grad()
             images, labels = data
             outputs = net(images) # This has an extra dimension, why? ([32, 2])
-            #_, predicted = torch.max(outputs.data, 1)
-            #predicted = predicted.type(torch.float)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
 
+        valid_loss = 0.0
+        net.eval()
+        for data in valid_loader:
+            optimizer.zero_grad()
+            images, labels = data
+            outputs = net(images)
+            loss = criterion(outputs, labels)
+            valid_loss = loss.item() * len(data)
+
+        print("Loss during validation in the iteration %d equals: %f" % (epoch, valid_loss))
+
+
+
     correct = 0
     total = 0
+
     with torch.no_grad():
         for data in test_loader:
             images, labels = data
@@ -65,20 +79,27 @@ if __name__ == "__main__":
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
-    print('Accuracy of the network on the 10000 on dummy faces  images: %d %%' % (
+    print('Accuracy of the network on the 10000 on dummy faces images: %d %%' % (
         100 * correct / total))
 
-    # TODO: fix
-    with torch.no_grad():
-        for data in real_dir:
-            for resized in pyramid(image, scale=1.2):
-                # loop over the sliding window for each layer of the pyramid
-                for (x, y, window) in sliding_window(resized, stepSize=16, windowSize=(winW, winH)):
-                    # TODO: transform the little rectangle to tensor
-                    test_data = torchvision.datasets.ImageFolder(test_dir, transform=transform)
-                    if the window does not meet our desired window size, ignore it
-                    if window.shape[0] != winH or window.shape[1] != winW:
-                        continue
+    import cv2
 
-                    clone = resized.copy()
-                    cv2.rectangle(clone, (x, y), (x + winW, y + winH), (0, 255, 0), 2)
+    image = cv2.imread("real_images/slowdive.jpg", cv2.IMREAD_GRAYSCALE)
+    winW = winH = 36
+    scales = pyramid_sliding_window_detection(net, np.array(image, dtype='float32'), 1.2, 36, 36, 5)
+
+    clone = image.copy()
+    # The shape of the output of pyramid_sliding_... is [scale] where scale is [scale, [face]] and face is
+    # [startx, starty, endx, endy]
+    total = 0
+    for scale in scales:
+        for face in scale[1]:
+            face = np.array(face, dtype=int)
+            total += 1
+            cv2.rectangle(clone, (face[0], face[1]), (face[2], face[3]), (255, 0, 0), 2)
+            break
+        break
+    cv2.imshow("Tada", clone)
+    cv2.waitKey(0)
+    print(total)
+
