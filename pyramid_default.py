@@ -56,7 +56,7 @@ def pyramid_sliding_window_detection(net, image, scale, winW, winH, stepSize):
             # We only register faces with a prob higher than 0.99 to avoid false positives
             # (softmax dim parameter : dim=0->rows add up to 1, dim=1->rows add up to 1)
             softmax = torch.nn.functional.softmax(output, dim=1)
-            if softmax[0][1] >= 1:
+            if softmax[0][1] >= 0.99:
                 detected_faces.append((x, y))
 
 
