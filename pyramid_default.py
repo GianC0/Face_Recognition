@@ -55,9 +55,13 @@ def pyramid_sliding_window_detection(net, image, scale, winW, winH, stepSize):
 
             # We only register faces with a prob higher than 0.99 to avoid false positives
             # (softmax dim parameter : dim=0->rows add up to 1, dim=1->rows add up to 1)
+            # print(output)
+
+            prob_threshold = 0.995
             softmax = torch.nn.functional.softmax(output, dim=1)
-            if softmax[0][1] >= 1:
-                detected_faces.append((x, y))
+            if softmax[0][1] >= prob_threshold:
+                print(softmax[0][1])
+                detected_faces.append((x, y, softmax[0][1].item()))
 
 
         #Add the detected faces and the corresponding factors to the all_faces variable
@@ -69,14 +73,38 @@ def pyramid_sliding_window_detection(net, image, scale, winW, winH, stepSize):
     for j in range(len(all_detected_faces)):
         for i in range(len(all_detected_faces[j][1])): #all_detected_faces[j][1]->detected faces of the i-pyramid-level
             # in this line we both :
-            # - change the tuple from a 2d (startX, startY) to a 4d (startX, startY, endX, endY)
+            # - change the tuple from a 2d (startX, startY) to a 5d (startX, startY, endX, endY, probability)
             # - multiply each number of the tuple by the current scale factor
             all_detected_faces[j][1][i] = (
-                                              all_detected_faces[j][1][i][0] * all_detected_faces[j][0], all_detected_faces[j][1][i][1] * all_detected_faces[j][0]
+                                              all_detected_faces[j][1][i][0] * all_detected_faces[j][0], # startX multiplied with scale
+                                              all_detected_faces[j][1][i][1] * all_detected_faces[j][0] # startY multiplied with scale
                                           ) + (
-                                            (all_detected_faces[j][1][i][0] + winW)*all_detected_faces[j][0], (all_detected_faces[j][1][i][1] + winH)*all_detected_faces[j][0]
+                                            (all_detected_faces[j][1][i][0] + winW)*all_detected_faces[j][0], # startX + width = endX
+                                            (all_detected_faces[j][1][i][1] + winH)*all_detected_faces[j][0], # startY + height = endY
+                                            all_detected_faces[j][1][i][2] # probability of class being a face
             )
-    #print(all_detected_faces)
     # Concatenate detected faces into the same array
-    final_detected_faces = all_detected_faces
+    final_detected_faces = non_max_supp(all_detected_faces)
+    print(final_detected_faces)
     return final_detected_faces
+
+def non_max_supp(all_detected_faces):
+    from iou import intersection_over_union
+    iou_threshold = 0.5
+
+    all_detected_faces = sorted(all_detected_faces, key=lambda x: x[0][4], reverse=True)
+    faces_after_non_max_supp = []
+    while all_detected_faces:
+        chosen_box = all_detected_faces.pop()
+        all_detected_faces = [
+            box
+            for box in all_detected_faces
+            if intersection_over_union(
+                torch.tensor(chosen_box[0][:4]),
+                torch.tensor(box[0][:4]),
+            ) < iou_threshold
+        ]
+
+        faces_after_non_max_supp.append(chosen_box)
+
+    return faces_after_non_max_supp

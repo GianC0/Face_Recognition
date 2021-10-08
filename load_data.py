@@ -25,9 +25,10 @@ test_data = torchvision.datasets.ImageFolder(test_dir, transform=transform)
 valid_size = 0.05
 batch_size = 32
 n_epochs = 1
+learning_rate = 0.01
 
 net = Net()
-optimizer = optim.SGD(net.parameters(), lr=0.01)
+optimizer = optim.SGD(net.parameters(), lr=learning_rate)
 criterion = nn.CrossEntropyLoss()
 
 num_train = len(train_data)
@@ -48,20 +49,22 @@ if __name__ == "__main__":
     net.train()
     for epoch in range(1, n_epochs+1):
         for data in train_loader:
-            optimizer.zero_grad()
             images, labels = data
             outputs = net(images) # This has an extra dimension, why? ([32, 2])
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
+            optimizer.zero_grad()
+        print("Training in %d" %epoch)
 
+    for epoch in range(1, n_epochs + 1):
         valid_loss = 0.0
         net.eval()
         for data in valid_loader:
-            optimizer.zero_grad()
             images, labels = data
             outputs = net(images)
             loss = criterion(outputs, labels)
+            optimizer.zero_grad()
             valid_loss = loss.item() * len(data)
 
         print("Loss during validation in the iteration %d equals: %f" % (epoch, valid_loss))
@@ -84,11 +87,11 @@ if __name__ == "__main__":
 
     import cv2
 
+    clone = cv2.imread("real_images/slowdive.jpg")
     image = cv2.imread("real_images/slowdive.jpg", cv2.IMREAD_GRAYSCALE)
+    norm_image = cv2.normalize(image, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
     winW = winH = 36
-    scales = pyramid_sliding_window_detection(net, np.array(image, dtype='float32'), 1.2, 36, 36, 5)
-
-    clone = image.copy()
+    scales = pyramid_sliding_window_detection(net, np.array(norm_image, dtype='float32'), 1.2, 36, 36, 5)
     # The shape of the output of pyramid_sliding_... is [scale] where scale is [scale, [face]] and face is
     # [startx, starty, endx, endy]
     total = 0
@@ -97,8 +100,6 @@ if __name__ == "__main__":
             face = np.array(face, dtype=int)
             total += 1
             cv2.rectangle(clone, (face[0], face[1]), (face[2], face[3]), (255, 0, 0), 2)
-            break
-        break
     cv2.imshow("Tada", clone)
     cv2.waitKey(0)
     print(total)
