@@ -3,3 +3,6 @@
 
 #Data
 data/
+
+#Python
+__pycache__/
