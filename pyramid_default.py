@@ -57,7 +57,7 @@ def pyramid_sliding_window_detection(net, image, scale, winW, winH, stepSize):
             # (softmax dim parameter : dim=0->rows add up to 1, dim=1->rows add up to 1)
             # print(output)
 
-            prob_threshold = 0.995
+            prob_threshold = 0.999
             softmax = torch.nn.functional.softmax(output, dim=1)
             if softmax[0][1] >= prob_threshold:
                 print(softmax[0][1])
@@ -84,7 +84,7 @@ def pyramid_sliding_window_detection(net, image, scale, winW, winH, stepSize):
                                             all_detected_faces[j][1][i][2] # probability of class being a face
             )
     # Concatenate detected faces into the same array
-    final_detected_faces = non_max_supp(all_detected_faces)
+    final_detected_faces = all_detected_faces
     print(final_detected_faces)
     return final_detected_faces
 
