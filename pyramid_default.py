@@ -1,5 +1,10 @@
 import cv2
 import torch
+from iou import intersection_over_union
+
+
+iou_threshold = 0.2
+prob_threshold = 0.999 # for 10 iterations 0.999
 
 
 def pyramid(image, scale=1.5, minSize=(30, 30)):
@@ -57,7 +62,6 @@ def pyramid_sliding_window_detection(net, image, scale, winW, winH, stepSize):
             # (softmax dim parameter : dim=0->rows add up to 1, dim=1->rows add up to 1)
             # print(output)
 
-            prob_threshold = 0.999
             softmax = torch.nn.functional.softmax(output, dim=1)
             if softmax[0][1] >= prob_threshold:
                 print(softmax[0][1])
@@ -84,27 +88,39 @@ def pyramid_sliding_window_detection(net, image, scale, winW, winH, stepSize):
                                             all_detected_faces[j][1][i][2] # probability of class being a face
             )
     # Concatenate detected faces into the same array
-    final_detected_faces = all_detected_faces
+    clean_version = clean_faces(all_detected_faces)
+    print(len(clean_version))
+    final_detected_faces = non_max_supp(clean_version)
+    print(len(final_detected_faces))
     print(final_detected_faces)
     return final_detected_faces
 
-def non_max_supp(all_detected_faces):
-    from iou import intersection_over_union
-    iou_threshold = 0.5
 
-    all_detected_faces = sorted(all_detected_faces, key=lambda x: x[0][4], reverse=True)
+def non_max_supp(all_detected_faces):
+    # [boxes], boxes -> [initX, initY, endX, endY, p]
+    all_detected_faces = sorted(all_detected_faces, key=lambda x: x[4], reverse=True)
     faces_after_non_max_supp = []
     while all_detected_faces:
         chosen_box = all_detected_faces.pop()
+        # This creates a list of box where everybox is obtained from all_detected_faces only inf the condition is met
         all_detected_faces = [
             box
             for box in all_detected_faces
             if intersection_over_union(
-                torch.tensor(chosen_box[0][:4]),
-                torch.tensor(box[0][:4]),
+                torch.tensor(chosen_box[:4]),
+                torch.tensor(box[:4]),
             ) < iou_threshold
         ]
-
         faces_after_non_max_supp.append(chosen_box)
-
     return faces_after_non_max_supp
+
+
+def clean_faces(faces):
+    # [x], x -> [float, [y]], y -> [initX, initY, endX, endY, p]
+    cleaned_faces = []
+    for x in faces:
+        if len(x[1]) == 0:
+            continue
+        for y in x[1]:
+            cleaned_faces.append(y)
+    return cleaned_faces

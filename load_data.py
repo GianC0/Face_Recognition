@@ -8,6 +8,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 import torch.optim as optim
 from pyramid_default import pyramid_sliding_window_detection
 from net import Net
+import os
 
 
 train_dir = './train_images'
@@ -24,8 +25,9 @@ test_data = torchvision.datasets.ImageFolder(test_dir, transform=transform)
 
 valid_size = 0.05
 batch_size = 32
-n_epochs = 1
+n_epochs = 10
 learning_rate = 0.01
+image_name = "real_images/easy_one.jpg"
 
 net = Net()
 optimizer = optim.SGD(net.parameters(), lr=learning_rate)
@@ -87,20 +89,20 @@ if __name__ == "__main__":
 
     import cv2
 
-    clone = cv2.imread("real_images/slowdive.jpg")
-    image = cv2.imread("real_images/slowdive.jpg", cv2.IMREAD_GRAYSCALE)
+    image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
+    clone = cv2.imread(image_name)
     norm_image = cv2.normalize(image, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
     winW = winH = 36
-    scales = pyramid_sliding_window_detection(net, np.array(norm_image, dtype='float32'), 1.2, 36, 36, 5)
-    # The shape of the output of pyramid_sliding_... is [scale] where scale is [scale, [face]] and face is
-    # [startx, starty, endx, endy]
+    faces = pyramid_sliding_window_detection(net, np.array(norm_image, dtype='float32'), 1.2, 36, 36, 5)
+
     total = 0
-    for scale in scales:
-        for face in scale[1]:
-            face = np.array(face, dtype=int)
-            total += 1
-            cv2.rectangle(clone, (face[0], face[1]), (face[2], face[3]), (255, 0, 0), 2)
+    for face in faces:
+        face_array = np.array(face, dtype=int) # This is to convert the data to int, as it comes as float
+        total += 1
+        cv2.rectangle(clone, (face_array[0], face_array[1]), (face_array[2], face_array[3]), (255, 0, 0), 2)
     cv2.imshow("Tada", clone)
+    path = '~/Documents/INSA/machine learning/git_Alan/ml_insa_lyon/result'
+    cv2.imwrite(os.path.join(path, 'super_detected_best_ever_recognition.jpg'), clone)
     cv2.waitKey(0)
     print(total)
 
