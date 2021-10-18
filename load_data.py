@@ -1,4 +1,3 @@
-#!/bin/env python3
 import numpy as np
 import torch
 import torchvision
@@ -8,12 +7,20 @@ from torch.utils.data.sampler import SubsetRandomSampler
 import torch.optim as optim
 from pyramid_default import pyramid_sliding_window_detection
 from net import Net
+from config import config
 import os
 
 
-train_dir = './train_images'
-test_dir = './test_images'
-real_dir = './real_images'
+train_dir = config["dirs"]["train"]
+test_dir = config["dirs"]["test"]
+real_dir = config["dirs"]["real"]
+valid_size = config["training"]["valid_size"]
+batch_size = config["training"]["batch_size"]
+n_epochs = config["training"]["n_epochs"]
+learning_rate = config["training"]["learning_rate"]
+input_path = config["usage"]["input"]
+output_path = config["usage"]["output"]
+
 
 transform = transforms.Compose(
     [transforms.Grayscale(), 
@@ -22,12 +29,6 @@ transform = transforms.Compose(
 
 train_data = torchvision.datasets.ImageFolder(train_dir, transform=transform)
 test_data = torchvision.datasets.ImageFolder(test_dir, transform=transform)
-
-valid_size = 0.05
-batch_size = 32
-n_epochs = 10
-learning_rate = 0.01
-image_name = "real_images/easy_one.jpg"
 
 net = Net()
 optimizer = optim.SGD(net.parameters(), lr=learning_rate)
@@ -89,8 +90,8 @@ if __name__ == "__main__":
 
     import cv2
 
-    image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
-    clone = cv2.imread(image_name)
+    image = cv2.imread(input_path, cv2.IMREAD_GRAYSCALE)
+    clone = cv2.imread(input_path)
     norm_image = cv2.normalize(image, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
     winW = winH = 36
     faces = pyramid_sliding_window_detection(net, np.array(norm_image, dtype='float32'), 1.2, 36, 36, 5)
@@ -100,9 +101,16 @@ if __name__ == "__main__":
         face_array = np.array(face, dtype=int) # This is to convert the data to int, as it comes as float
         total += 1
         cv2.rectangle(clone, (face_array[0], face_array[1]), (face_array[2], face_array[3]), (255, 0, 0), 2)
-    cv2.imshow("Tada", clone)
-    path = '~/Documents/INSA/machine learning/git_Alan/ml_insa_lyon/result'
-    cv2.imwrite(os.path.join(path, 'super_detected_best_ever_recognition.jpg'), clone)
-    cv2.waitKey(0)
+        
+    cv2.imshow("Faces recognized", clone)
+    cv2.waitKey(5000)
+
+    if not os.path.isdir(output_path):
+        print(f"Error: {output_path} is not a valid folder")
+        exit(2)
+    
+    filename, _ = os.path.splitext(os.path.basename(input_path))
+    _, extension = os.path.splitext(input_path)
+    cv2.imwrite(os.path.join(output_path, f"{filename}_DONE{extension}"), clone) # To config 
     print(total)
 

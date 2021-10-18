@@ -1,10 +1,11 @@
 import cv2
 import torch
 from iou import intersection_over_union
+from config import config
 
 
-iou_threshold = 0.2
-prob_threshold = 0.999 # for 10 iterations 0.999
+iou_threshold = config["pyramid"]["iou_threshold"]
+prob_threshold = config["pyramid"]["prob_threshold"]
 
 
 def pyramid(image, scale=1.5, minSize=(30, 30)):
