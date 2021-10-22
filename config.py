@@ -12,19 +12,19 @@ settings
 
 config = {
     "dirs": {
-        "train": "./train_images",
-        "test": "./test_images",
-        "real": "./real_images",
+        "train": "train_images",
+        "test": "test_images",
+        "real": "real_images",
     },
     "training": {
-        "valid_size": 0.05,
+        "valid_size": 0.8,
         "batch_size": 32,
-        "n_epochs": 10,
+        "n_epochs": 1,
         "learning_rate": 0.01,
     },
     "usage": {
-        "input": "./real_images/easy_one.jpg",
-        "output": "./real_images_result",
+        "input": "real_images",
+        "output": "real_images",
     },
     "pyramid": {
         "iou_threshold": 0.2,
