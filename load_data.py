@@ -24,7 +24,7 @@ test_data = torchvision.datasets.ImageFolder(test_dir, transform=transform)
 
 valid_size = 0.05
 batch_size = 32
-n_epochs = 1
+n_epochs = 20
 
 net = Net()
 optimizer = optim.SGD(net.parameters(), lr=0.01)
@@ -45,8 +45,9 @@ test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuf
 classes = ('noface','face')
 
 if __name__ == "__main__":
-    net.train()
+    min_valid_loss = 0.5
     for epoch in range(1, n_epochs+1):
+        net.train()
         for data in train_loader:
             optimizer.zero_grad()
             images, labels = data
@@ -65,6 +66,13 @@ if __name__ == "__main__":
             valid_loss = loss.item() * len(data)
 
         print("Loss during validation in the iteration %d equals: %f" % (epoch, valid_loss))
+        if min_valid_loss > valid_loss:
+            print(f'Validation Loss Decreased({min_valid_loss:.6f}--->{valid_loss:.6f}) \t Saving The Model')
+            min_valid_loss = valid_loss
+            # Saving State Dict
+            torch.save(net.state_dict(), 'saved_model.pth')
+
+
 
 
 
@@ -72,9 +80,12 @@ if __name__ == "__main__":
     total = 0
 
     with torch.no_grad():
+        net_saved = Net()
+        net_saved.load_state_dict(torch.load('saved_model.pth'))
+        net_saved.eval()
         for data in test_loader:
             images, labels = data
-            outputs = net(images)
+            outputs = net_saved(images)
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
@@ -86,7 +97,7 @@ if __name__ == "__main__":
 
     image = cv2.imread("real_images/slowdive.jpg", cv2.IMREAD_GRAYSCALE)
     winW = winH = 36
-    scales = pyramid_sliding_window_detection(net, np.array(image, dtype='float32'), 1.2, 36, 36, 5)
+    scales = pyramid_sliding_window_detection(net_saved, np.array(image, dtype='float32'), 1.2, 36, 36, 5)
 
     clone = image.copy()
     # The shape of the output of pyramid_sliding_... is [scale] where scale is [scale, [face]] and face is
@@ -97,9 +108,9 @@ if __name__ == "__main__":
             face = np.array(face, dtype=int)
             total += 1
             cv2.rectangle(clone, (face[0], face[1]), (face[2], face[3]), (255, 0, 0), 2)
-            break
-        break
+            # break
+        # break
+    print(total)
     cv2.imshow("Tada", clone)
     cv2.waitKey(0)
-    print(total)
 
