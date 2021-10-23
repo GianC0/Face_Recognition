@@ -17,10 +17,11 @@ config = {
         "real": "real_images",
     },
     "training": {
-        "valid_size": 0.8,
+        "valid_size": 0.05,
         "batch_size": 32,
-        "n_epochs": 1,
+        "n_epochs": 10,
         "learning_rate": 0.01,
+        "min_valid_loss": 0.5,
     },
     "usage": {
         "input": "real_images",

@@ -20,6 +20,7 @@ real_dir = config["dirs"]["real"]
 valid_size = config["training"]["valid_size"]
 batch_size = config["training"]["batch_size"]
 n_epochs = config["training"]["n_epochs"]
+min_valid_loss = config["training"]["min_valid_loss"]
 learning_rate = config["training"]["learning_rate"]
 input_path = config["usage"]["input"]
 output_format = config["usage"]["output"]
@@ -50,9 +51,9 @@ test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuf
 classes = ('noface','face')
 
 print("Beginning training")
-net.train() # Which is the function to stop the training?
+net.train()
 for epoch in range(1, n_epochs+1):
-    print(f"-> Epoch number {epoch}", end = " ...")
+    print(f"-> Training in epoch number {epoch}", end = " ...")
     for data in train_loader:
         images, labels = data
         outputs = net(images)
@@ -60,25 +61,27 @@ for epoch in range(1, n_epochs+1):
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
-    print(" DONE")
 
-"""
-# This is innecesary, as its not upgrading nothing (the gradient remains the same)
-print("Beginning validation")
-for epoch in range(1, n_epochs + 1):
-    print(f"-> Epoch number {epoch}", end = " ...")
     valid_loss = 0.0
     net.eval()
     for data in valid_loader:
+        optimizer.zero_grad()
         images, labels = data
         outputs = net(images)
         loss = criterion(outputs, labels)
-        optimizer.zero_grad()
         valid_loss = loss.item() * len(data)
-    print(f"Loss: {valid_loss}")
-"""
+
+    print("Loss during validation in the iteration %d equals: %f" % (epoch, valid_loss))
+    if min_valid_loss > valid_loss:
+        print(f'Validation Loss Decreased({min_valid_loss:.6f}--->{valid_loss:.6f}) \t Saving The Model')
+        min_valid_loss = valid_loss
+        torch.save(net.state_dict(), 'saved_model.pth')
+
 net.eval()
 with torch.no_grad():
+    net_saved = Net()
+    net_saved.load_state_dict(torch.load('saved_model.pth'))
+    net_saved.eval()
     print("Beginning testing")
     correct = 0
     total = 0
