@@ -6,7 +6,7 @@ import torchvision.transforms as transforms
 import torch.nn as nn
 from torch.utils.data.sampler import SubsetRandomSampler
 import torch.optim as optim
-from net import Net
+from net import Net, NetExtraLinear, NetExtraConv
 
 if __name__ == '__main__':
     train_dir = './data/train_images'
@@ -43,8 +43,9 @@ if __name__ == '__main__':
 
     n_epochs = 10
 
+    print("nmbr epoch: ")
     for epoch in range(1, n_epochs+1):
-        print(f"nmbr epoch: {epoch}")
+        print(f" {epoch}", end="")
         for data in train_loader:
             optimizer.zero_grad()
             images, labels = data
@@ -54,7 +55,7 @@ if __name__ == '__main__':
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-
+    print(" fin")
     correct = 0
     total = 0
     with torch.no_grad():
