@@ -17,19 +17,19 @@ config = {
         "real": "real_images",
     },
     "training": {
-        "valid_size": 0.05,
+        "valid_size": 0.1,
         "batch_size": 32,
         "n_epochs": 10,
         "learning_rate": 0.01,
-        "min_valid_loss": 0.5,
+        "min_valid_loss": 1,
     },
     "usage": {
         "input": "real_images",
         "output": "real_images",
     },
     "pyramid": {
-        "iou_threshold": 0.2,
-        "prob_threshold": 0.999,
+        "iou_threshold": 0.1,
+        "prob_threshold": 0.9999,
     }
 }
 
