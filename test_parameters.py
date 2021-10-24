@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
     n_epochs_set = [25, 20]
     results = []
-    n = [1, 2, 3, 4, 5, 6]
+    n = [1, 2]
     for number in n:
 
         for n_epochs in n_epochs_set:
