@@ -42,9 +42,9 @@ if __name__ == '__main__':
     test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True, num_workers=1)
     classes = ('noface', 'face')
 
-    n_epochs_set = [5, 10, 15]
+    n_epochs_set = [25, 20]
     results = []
-    n = [1, 2, 3, 4, 5]
+    n = [1, 2, 3, 4, 5, 6]
     for number in n:
 
         for n_epochs in n_epochs_set:
@@ -62,8 +62,6 @@ if __name__ == '__main__':
                         optimizer.zero_grad()
                         images, labels = data
                         outputs = net(images)
-                        # _, predicted = torch.max(outputs.data, 1)
-                        # predicted = predicted.type(torch.float)
                         loss = criterion(outputs, labels)
                         loss.backward()
                         optimizer.step()
