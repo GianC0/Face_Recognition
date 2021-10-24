@@ -6,7 +6,7 @@ import torchvision.transforms as transforms
 import torch.nn as nn
 from torch.utils.data.sampler import SubsetRandomSampler
 import torch.optim as optim
-from net import Net, NetExtraLinear, NetExtraConv
+from net import Net, NetExtraLinear
 import time
 
 if __name__ == '__main__':
