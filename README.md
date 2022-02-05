@@ -2,13 +2,10 @@
 
 > The software was developed as an assignment for my class in Machine Learning at INSA Lyon. 
 
-## Detailed description
+## Description and Usage
 
 > It's all well explained in our [presentation file](Machine%20learning%20report.pdf)
 
-## Usage
- 
-xxx
 
 ## Contributing
 >Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
