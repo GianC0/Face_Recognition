@@ -1,4 +1,4 @@
-# Face_Recognition
+# Face Recognition
 
 > The software was developed as an assignment for my class in Machine Learning at INSA Lyon. 
 
@@ -26,4 +26,4 @@ Joël Haubold
 
 
 ## License
-[GNUv3.0](https://github.com/all-licenses/GNU-General-Public-License-v3.0.git)
+[GNUv3.0](https://github.com/all-licenses/GNU-General-Public-License-v3.0/blob/main/LICENSE)
