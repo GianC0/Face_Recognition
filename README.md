@@ -1,6 +1,6 @@
 # Face Recognition
 
-> The software was developed as an assignment for my class in Machine Learning at INSA Lyon. 
+> The software was developed as an assignment for our class in Machine Learning at INSA Lyon. We train CNN network in order to recognize 
 
 ## Description and Usage
 
