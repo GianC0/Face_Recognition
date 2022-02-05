@@ -4,7 +4,7 @@
 
 ## Detailed description
 
-> Open our [project presentation file](documentation.pdf) . It's all well explained there.
+> It's all well explained in our [presentation file](Machine Learning report.pdf)
 
 ## Usage
  
@@ -12,7 +12,7 @@ xxx
 
 ## Contributing
 >Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-Please make sure to integrate the training, validation and test sets.
+Please make sure to integrate the training, validation and test sets as well.
 
 ## References
 xxx
@@ -22,7 +22,6 @@ Giancarlo Andriano
 Natalia Markoborodova
 Alan Barahona Ruiz
 Joël Haubold
-
 
 
 ## License
